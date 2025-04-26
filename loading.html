@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading - Student Expenses Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<!-- ... existing code ... -->
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Roboto', sans-serif;
+        background-color: #ffffff; /* Changed from dark to white */
+        color: #333333; /* Changed text color to dark gray for better contrast */
+    }
+
+    .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .app-logo {
+        margin-bottom: 40px;
+    }
+
+    .app-logo h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        color: #e53935; /* Kept red color for heading */
+    }
+
+    .app-logo p {
+        font-size: 1.2rem;
+        color: #555555; /* Changed to darker gray */
+    }
+
+    .loader-wrapper {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin-bottom: 30px;
+    }
+
+    .loader {
+        border: 8px solid #f3f3f3; /* Changed to light gray */
+        border-top: 8px solid #e53935;
+        border-radius: 50%;
+        width: 120px;
+        height: 120px;
+        animation: spin 2s linear infinite;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .loader-inner {
+        border: 6px solid #f3f3f3; /* Changed to light gray */
+        border-bottom: 6px solid #e53935;
+        border-radius: 50%;
+        width: 80px;
+        height: 80px;
+        animation: spin-reverse 1.5s linear infinite;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .progress-container {
+        width: 300px;
+        height: 10px;
+        background-color: #f3f3f3; /* Changed to light gray */
+        border-radius: 5px;
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+
+    .progress-bar {
+        height: 100%;
+        width: 0%;
+        background-color: #e53935;
+        transition: width 0.5s;
+    }
+
+    .loading-text {
+        font-size: 1.2rem;
+        margin-bottom: 40px;
+        color: #555555; /* Changed to darker gray */
+    }
+
+    .quote-container {
+        max-width: 600px;
+        background-color: rgba(229, 57, 53, 0.05); /* Lighter red background */
+        border-left: 4px solid #e53935;
+        padding: 20px;
+        border-radius: 4px;
+        margin-top: 20px;
+        text-align: left;
+        min-height: 150px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Added subtle shadow */
+    }
+
+    #saving-quote {
+        color: #333333; /* Changed to dark gray */
+        font-size: 1.2rem;
+        font-style: italic;
+        margin-bottom: 10px;
+        line-height: 1.5;
+    }
+
+    .quote-author {
+        color: #e53935;
+        font-weight: bold;
+        text-align: right;
+        font-size: 1rem;
+    }
+
+    .background-particles {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+    }
+
+    .particle {
+        position: absolute;
+        background-color: rgba(229, 57, 53, 0.1); /* Lighter red particles */
+        border-radius: 50%;
+        animation: float 15s infinite ease-in-out;
+    }
+
+    @keyframes spin {
+        0% { transform: translate(-50%, -50%) rotate(0deg); }
+        100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    @keyframes spin-reverse {
+        0% { transform: translate(-50%, -50%) rotate(0deg); }
+        100% { transform: translate(-50%, -50%) rotate(-360deg); }
+    }
+
+    @keyframes float {
+        0%, 100% {
+            transform: translateY(0) translateX(0);
+        }
+        25% {
+            transform: translateY(-20px) translateX(10px);
+        }
+        50% {
+            transform: translateY(-35px) translateX(-15px);
+        }
+        75% {
+            transform: translateY(-15px) translateX(15px);
+        }
+    }
+
+    .fade-in {
+        animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+</style>
+<!-- ... rest of the code remains the same ... -->
+</head>
+<body>
+    <div class="loading-container">
+        <div class="app-logo">
+            <h1>Student Expenses Tracker</h1>
+            <p>Preparing your financial dashboard...</p>
+        </div>
+        
+        <div class="loader-wrapper">
+            <div class="loader"></div>
+            <div class="loader-inner"></div>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        
+        <div class="loading-text" id="loading-text">Loading your data... 0%</div>
+        
+        <div class="quote-container">
+            <p id="saving-quote" class="fade-in"></p>
+            <p class="quote-author" id="quote-author"></p>
+        </div>
+        
+        <div class="background-particles" id="particles"></div>
+    </div>
+
+    <script>
+        // Money saving quotes
+        const savingQuotes = [
+            {
+                quote: "Do not save what is left after spending, but spend what is left after saving.",
+                author: "Warren Buffett"
+            },
+            {
+                quote: "A budget is telling your money where to go instead of wondering where it went.",
+                author: "Uday Kumar"
+            },
+            {
+                quote: "The art is not in making money, but in keeping it.",
+                author: "Ekshitha"
+            },
+            {
+                quote: "Beware of little expenses; a small leak will sink a great ship.",
+                author: "Benjamin Franklin"
+            },
+            {
+                quote: "Money is a terrible master but an excellent servant.",
+                author: "P.T. Barnum"
+            },
+            {
+                quote: "Dabbulu evarki urike raavu..",
+                author: "Harika"
+            }
+        ];
+
+        // Create background particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const numberOfParticles = 15;
+            
+            for (let i = 0; i < numberOfParticles; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Random size between 20px and 100px
+                const size = Math.random() * 80 + 20;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                // Random position
+                particle.style.top = `${Math.random() * 100}%`;
+                particle.style.left = `${Math.random() * 100}%`;
+                
+                // Random animation delay
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Display a random quote with fade effect
+        function displayRandomQuote() {
+            const quoteElement = document.getElementById('saving-quote');
+            const authorElement = document.getElementById('quote-author');
+            
+            // Remove fade-in class to reset animation
+            quoteElement.classList.remove('fade-in');
+            
+            // Trigger reflow to restart animation
+            void quoteElement.offsetWidth;
+            
+            // Get random quote
+            const randomIndex = Math.floor(Math.random() * savingQuotes.length);
+            const quote = savingQuotes[randomIndex];
+            
+            // Add fade-in class and update content
+            quoteElement.classList.add('fade-in');
+            quoteElement.textContent = `"${quote.quote}"`;
+            authorElement.textContent = `— ${quote.author}`;
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            const progressBar = document.getElementById('progress-bar');
+            const loadingText = document.getElementById('loading-text');
+            let progress = 0;
+            
+            // Total loading time: 15 seconds
+            const totalTime = 15;
+            const interval = 100; // Update every 100ms
+            const increment = (interval / (totalTime * 1000)) * 100;
+            
+            const progressInterval = setInterval(() => {
+                progress += increment;
+                const progressPercent = Math.min(Math.floor(progress), 100);
+                
+                progressBar.style.width = `${progressPercent}%`;
+                loadingText.textContent = `Loading your data... ${progressPercent}%`;
+                
+                if (progressPercent >= 100) {
+                    clearInterval(progressInterval);
+                    // Redirect to dashboard after loading completes
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 500);
+                }
+            }, interval);
+        }
+
+        // Rotate quotes every 3 seconds
+        function startQuoteRotation() {
+            // Show first quote immediately
+            displayRandomQuote();
+            
+            // Change quotes every 3 seconds
+            setInterval(displayRandomQuote, 3000);
+        }
+
+        // Initialize loading page
+        window.onload = function() {
+            createParticles();
+            startQuoteRotation();
+            updateProgress();
+        };
+    </script>
+</body>
+</html>
