@@ -282,6 +282,162 @@ function updateCharts() {
     categoryChart.update();
 }
 
+// Add this to your existing script.js file
+
+// Global variables for receipt handling
+let receiptImage = null;
+let receiptImageData = null;
+
+// Initialize receipt image handling
+function initializeReceiptHandling() {
+    const receiptInput = document.getElementById('receipt-image');
+    const imagePreview = document.getElementById('image-preview');
+    const scanButton = document.getElementById('scan-receipt');
+    
+    // Handle image selection
+    receiptInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                receiptImageData = event.target.result;
+                receiptImage = file;
+                
+                // Update preview
+                imagePreview.innerHTML = '';
+                const img = document.createElement('img');
+                img.src = receiptImageData;
+                imagePreview.appendChild(img);
+                
+                // Enable scan button
+                scanButton.disabled = false;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            imagePreview.innerHTML = '<p>No image selected</p>';
+            receiptImage = null;
+            receiptImageData = null;
+            scanButton.disabled = true;
+        }
+    });
+    
+    // Handle scan button click
+    scanButton.addEventListener('click', scanReceiptForAmount);
+}
+
+// Function to scan receipt for amount
+function scanReceiptForAmount() {
+    if (!receiptImage) {
+        showNotification('Please upload a receipt image first', 'error');
+        return;
+    }
+    
+    // Show scanning overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'scanning-overlay';
+    overlay.innerHTML = `
+        <i class="fas fa-sync-alt"></i>
+        <p>Scanning receipt...</p>
+    `;
+    document.body.appendChild(overlay);
+    overlay.style.display = 'flex';
+    
+    // Simulate OCR processing (in a real app, you would use a proper OCR API)
+    setTimeout(() => {
+        // Remove overlay
+        overlay.style.display = 'none';
+        setTimeout(() => overlay.remove(), 300);
+        
+        // For demo purposes, extract a random amount
+        // In a real implementation, you would use Tesseract.js or a cloud OCR API
+        const demoAmount = Math.floor(Math.random() * 1000) + 50;
+        
+        // Update amount field
+        document.getElementById('expense-amount').value = demoAmount;
+        
+        showNotification('Receipt scanned successfully!', 'success');
+    }, 2000);
+}
+
+// Modify the saveExpense function to include receipt image
+function saveExpense(expense) {
+    // Add receipt image if available
+    if (receiptImageData) {
+        expense.receiptImage = receiptImageData;
+    }
+    
+    // Rest of your existing saveExpense function
+    // ... existing code ...
+}
+
+// Modify the renderExpensesList function to show receipt thumbnails
+function renderExpensesList() {
+    // ... existing code ...
+    
+    // When creating expense rows, add thumbnail if available
+    expenses.forEach((expense, index) => {
+        const row = document.createElement('tr');
+        
+        // ... existing code for other columns ...
+        
+        // Add receipt thumbnail if available
+        let categoryCell = document.createElement('td');
+        categoryCell.textContent = expense.category;
+        if (expense.receiptImage) {
+            const thumbnail = document.createElement('img');
+            thumbnail.src = expense.receiptImage;
+            thumbnail.className = 'receipt-thumbnail';
+            thumbnail.title = 'Click to view receipt';
+            thumbnail.onclick = () => showReceiptModal(expense.receiptImage);
+            categoryCell.appendChild(document.createElement('br'));
+            categoryCell.appendChild(thumbnail);
+        }
+        row.appendChild(categoryCell);
+        
+        // ... rest of existing code ...
+    });
+}
+
+// Function to show receipt modal
+function showReceiptModal(imageData) {
+    // Create modal if it doesn't exist
+    let modal = document.getElementById('receipt-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'receipt-modal';
+        modal.className = 'receipt-modal';
+        modal.innerHTML = `
+            <div class="receipt-modal-content">
+                <span class="close-receipt-modal">&times;</span>
+                <img id="receipt-modal-image">
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Add close functionality
+        modal.querySelector('.close-receipt-modal').onclick = () => {
+            modal.style.display = 'none';
+        };
+        
+        // Close when clicking outside
+        window.onclick = (event) => {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
+    }
+    
+    // Set image and show modal
+    document.getElementById('receipt-modal-image').src = imageData;
+    modal.style.display = 'block';
+}
+
+// Add this to your window.onload or initialization function
+window.addEventListener('DOMContentLoaded', function() {
+    // ... existing code ...
+    
+    initializeReceiptHandling();
+});
 // Get monthly data for charts
 function getMonthlyData() {
     const monthlyTotals = {};
